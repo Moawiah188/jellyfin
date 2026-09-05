@@ -16,7 +16,7 @@ jobs:
           ref: fix-strm-external-subtitle-cache
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: global.json
+          dotnet-version: 10.0.x
       - name: Show tested commit
         run: git log -1 --oneline
       - name: Providers tests
