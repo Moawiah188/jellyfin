@@ -1,0 +1,38 @@
+# GitHub Actions workflow for the fork branch strmfix-10.11.11.
+# Place at .github/workflows/build-strmfix-dll.yml on that branch.
+# Builds only Emby.Server.Implementations (and its project references) from the
+# patched v10.11.11 source and publishes the DLL plus its SHA-256 as an artifact.
+name: Build patched Emby.Server.Implementations.dll (10.11.11 strm fix)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [strmfix-10.11.11]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Build Emby.Server.Implementations (Release)
+        run: dotnet build Emby.Server.Implementations/Emby.Server.Implementations.csproj -c Release -p:ContinuousIntegrationBuild=true
+      - name: Record checksum and version
+        run: |
+          set -e
+          cd Emby.Server.Implementations/bin/Release/net9.0
+          sha256sum Emby.Server.Implementations.dll | tee SHA256SUMS
+          git -C "$GITHUB_WORKSPACE" rev-parse HEAD > SOURCE_COMMIT
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Emby.Server.Implementations-10.11.11-strmfix
+          path: |
+            Emby.Server.Implementations/bin/Release/net9.0/Emby.Server.Implementations.dll
+            Emby.Server.Implementations/bin/Release/net9.0/SHA256SUMS
+            Emby.Server.Implementations/bin/Release/net9.0/SOURCE_COMMIT
+          if-no-files-found: error
