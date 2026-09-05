@@ -1,0 +1,25 @@
+# Fork-only: run the two affected test projects against the fix branch.
+name: strmfix tests (fork only)
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci-strmfix-tests]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: Moawiah188/jellyfin
+          ref: fix-strm-external-subtitle-cache
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Show tested commit
+        run: git log -1 --oneline
+      - name: Providers tests
+        run: dotnet test tests/Jellyfin.Providers.Tests/Jellyfin.Providers.Tests.csproj -c Release --logger "console;verbosity=normal" 2>&1 | tail -60
+      - name: Server.Implementations tests
+        run: dotnet test tests/Jellyfin.Server.Implementations.Tests/Jellyfin.Server.Implementations.Tests.csproj -c Release --logger "console;verbosity=normal" 2>&1 | tail -60
